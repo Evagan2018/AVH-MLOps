@@ -12,19 +12,18 @@ on:
   # Trigger the workflow manually
   workflow_dispatch:
 
-env:
-  OWNER_LC: evagan2018   # Lowercase. Workaround for the current user
-
 jobs:
   run_test:
     runs-on: ubuntu-latest
+
     container:
       # Use the custom Docker image with the necessary tools and dependencies
-      image: ghcr.io/${{ env.OWNER_LC }}/avh-mlops/arm-mlops-docker-licensed:latest
+      image: ghcr.io/${{ vars.GHCR_OWNER_LC }}/avh-mlops/arm-mlops-docker-licensed:latest
       credentials:
         # Set the Docker image credentials using the actor and a GitHub token
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout repository
         # Check out the repository containing the ML project
