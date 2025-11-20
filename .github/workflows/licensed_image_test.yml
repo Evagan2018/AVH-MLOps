@@ -59,6 +59,16 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
+      - name: Debug workspace
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          pwd
+          ls -la
+          # Look for artifact/manifest files at the repo root:
+          ls -la vcpkg-configuration.json vcpkg-artifacts.json || true
+          # If they’re supposed to be in a subdir, show that too:
+          ls -la tools/ci || true
+        
       - name: Use vcpkg to install tools 
         # Test if the cbuild command is working in the Docker container
         run: |
