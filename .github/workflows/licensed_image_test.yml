@@ -31,7 +31,7 @@ jobs:
       - name: Check if Docker image exists
         id: check
         run: |
-          if docker manifest inspect ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/avh-mlops:latest > /dev/null 2>&1; then
+          if docker manifest inspect ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/arm-mlops-docker-licensed:latest > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -48,7 +48,7 @@ jobs:
 
     container:
       # Use the custom Docker image with the necessary tools and dependencies
-      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/avh-mlops-docker-licensed:latest
+      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/arm-mlops-docker-licensed:latest
       credentials:
         # Set the Docker image credentials using the actor and a GitHub token
         username: ${{ github.actor }}
