@@ -37,6 +37,11 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Diagnosis
+        run: |
+          echo "Repository Slug: ${{ needs.check-docker-image.outputs.repo-slug }}"
+          echo "Image Exists: ${{ needs.check-docker-image.outputs.image-exists }}"
+
   run_test:
     needs: check-docker-image
     runs-on: ubuntu-latest
