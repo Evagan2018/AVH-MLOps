@@ -12,13 +12,39 @@ on:
   # Trigger the workflow manually
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/avh-mlops
+
 jobs:
+
+  check-docker-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image-exists: ${{ steps.check.outputs.exists }}
+      repo-slug: ${{ steps.slug.outputs.repo_slug }}
+    steps:
+      - name: Derive lowercase repo slug
+        id: slug
+        run: echo "repo_slug=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Check if Docker image exists
+        id: check
+        run: |
+          if docker manifest inspect ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/avh-mlops:latest > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
   run_test:
+    needs: check-docker-image
     runs-on: ubuntu-latest
 
     container:
       # Use the custom Docker image with the necessary tools and dependencies
-      image: ghcr.io/${{ vars.GHCR_OWNER_LC }}/avh-mlops/arm-mlops-docker-licensed-community:latest
+      # image: ghcr.io/${{ vars.GHCR_OWNER_LC }}/avh-mlops/arm-mlops-docker-licensed-community:latest
+      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/avh-mlops:latest      
       credentials:
         # Set the Docker image credentials using the actor and a GitHub token
         username: ${{ github.actor }}
