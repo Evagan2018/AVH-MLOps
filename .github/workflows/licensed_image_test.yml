@@ -39,8 +39,8 @@ jobs:
 
       - name: Diagnosis
         run: |
-          echo "Repository Slug: ${{ needs.check-docker-image.outputs.repo-slug }}"
-          echo "Image Exists: ${{ needs.check-docker-image.outputs.image-exists }}"
+          echo "Repository Slug: ${{ steps.slug.outputs.repo_slug }}"
+          echo "Image Exists: ${{ steps.check.outputs.exists }}"
 
   run_test:
     needs: check-docker-image
