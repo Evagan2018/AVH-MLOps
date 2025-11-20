@@ -89,8 +89,9 @@ jobs:
 
       # Action under test
       - name: Activate vcpkg environment
+        working-directory: ./docker_base
         run: |
-          vcpkg activate ./docker_base/vcpkg-configuration.json
+          vcpkg activate --json=vcpkg-configuration.json
 
       - name: cbuild testproject
         # Test if the armclang command is working in the Docker container
