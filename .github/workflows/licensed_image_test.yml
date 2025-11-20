@@ -62,7 +62,7 @@ jobs:
       - name: Use vcpkg to install tools 
         # Test if the cbuild command is working in the Docker container
         run: |
-          vcpkg-shell activate --downloads-root=. --json=env.json
+          vcpkg activate --downloads-root=. --json=env.json
 
       - name: cbuild testproject
         # Test if the armclang command is working in the Docker container
