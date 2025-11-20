@@ -48,7 +48,7 @@ jobs:
 
     container:
       # Use the custom Docker image with the necessary tools and dependencies
-      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/avh-mlops:latest      
+      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/avh-mlops-docker-licensed:latest
       credentials:
         # Set the Docker image credentials using the actor and a GitHub token
         username: ${{ github.actor }}
