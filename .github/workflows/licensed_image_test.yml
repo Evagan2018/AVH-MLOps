@@ -59,6 +59,7 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
+      # Diagnostic steps to understand the workspace and vcpkg setup starting here
       - name: Debug workspace
         run: |
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
@@ -68,9 +69,21 @@ jobs:
           ls -la vcpkg-configuration.json vcpkg-artifacts.json || true
           # If they’re supposed to be in a subdir, show that too:
           ls -la tools/ci || true
-        
-      - name: Use vcpkg to install tools 
-        # Test if the cbuild command is working in the Docker container
+
+      - name: vcpkg project probe
+        run: |
+          vcpkg --version
+          vcpkg activate --dry-run || true
+          echo "Contents of root:"
+          ls -la
+          echo "Try known subdirs:"
+          for d in build ci tools docker_base docker_licensed; do
+            [ -d "$d" ] && { echo "== $d =="; ls -la "$d"; }
+          done
+      # Diagnostic steps to understand the workspace and vcpkg setup ending here
+
+      - name: Use vcpkg to install tools (if manifest exists)
+        if: ${{ hashFiles('vcpkg-configuration.json', 'vcpkg-artifacts.json') != '' }}
         run: |
           vcpkg activate --downloads-root=. --json=env.json
 
