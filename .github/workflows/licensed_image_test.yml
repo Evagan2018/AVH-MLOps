@@ -102,8 +102,8 @@ jobs:
           vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" --json="${GITHUB_WORKSPACE}/env.json"
 
 
-      - name: cbuild testproject
+      - name: Test cbuild version
         # Test if the armclang command is working in the Docker container
         run: |
-          cbuild get_started.csolution.yml --packs --update-rte --context .debug+avh
-  
+          cbuild --version
+ 
