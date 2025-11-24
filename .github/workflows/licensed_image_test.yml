@@ -61,6 +61,7 @@ jobs:
 
       # Diagnostic steps to understand the workspace and vcpkg setup starting here
       - name: Debug workspace
+        working-directory: ${{ github.workspace }}
         run: |
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           pwd
