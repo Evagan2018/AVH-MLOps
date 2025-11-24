@@ -131,6 +131,13 @@ jobs:
           PY
 
       - name: Test cbuild version
-        # Test if the armclang command is working in the Docker container
+        # Test if the cbuild command is working in the Docker container
         run: |
           cbuild --version
+
+      - name: Diagnosis
+        # Show the globals
+        run: |
+          echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
+          echo "GitHub Path      :" ${GITHUB_PATH}
+          echo "Content env.json :" $(cat ${GITHUB_WORKSPACE}/env.json)
