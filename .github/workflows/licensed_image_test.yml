@@ -64,6 +64,10 @@ jobs:
         run: |
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           pwd
+          echo "VCPKG_ROOT directory   :" $VCPKG_ROOT
+          echo "github.workspace       :" ${{ github.workspace }}
+          tree -L 3
+          echo "Contents of root:"          
           ls -la
           # Look for artifact/manifest files at the repo root:
           ls -la vcpkg-configuration.json vcpkg-artifacts.json || true
@@ -73,12 +77,7 @@ jobs:
       - name: vcpkg project probe
         run: |
           vcpkg --version
-          echo "VCPKG_ROOT directory   :" $VCPKG_ROOT
-          echo "github.workspace       :" ${{ github.workspace }}
-          tree -L 3
           vcpkg activate --json=${{ github.workspace }}/docker_base/vcpkg-configuration.json
-          echo "Contents of root:"
-          ls -la
           echo "Try known subdirs:"
           for d in build ci tools docker_base docker_licensed; do
             [ -d "$d" ] && { echo "== $d =="; ls -la "$d"; }
