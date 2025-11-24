@@ -73,7 +73,9 @@ jobs:
       - name: vcpkg project probe
         run: |
           vcpkg --version
-          echo $VCPKG_ROOT
+          echo "VCPKG_ROOT directory   :" $VCPKG_ROOT
+          echo "github.workspace       :" ${{ github.workspace }}
+          tree -L 3
           vcpkg activate --json=${{ github.workspace }}/docker_base/vcpkg-configuration.json
           echo "Contents of root:"
           ls -la
