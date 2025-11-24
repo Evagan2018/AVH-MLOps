@@ -62,30 +62,36 @@ jobs:
       # Diagnostic steps to understand the workspace and vcpkg setup starting here
       - name: Debug workspace (robust)
         run: |
-          set -u  # fail on unset variables (optional); don't use -e here
-          echo "SHELL=$SHELL"
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "github.workspace=${{ github.workspace }}"
-          echo "pwd=$(pwd)"
-          echo "VCPKG_ROOT=${VCPKG_ROOT:-<unset>}"
+          # Turn off 'exit on error' that GitHub's sh enables, so optional probes won't kill the step
+          set +e
 
-          # Show structure (prefer tree if available)
+          # Safely show common env vars (use defaults to avoid 'unset' crashes)
+          printf 'SHELL=%s\n' "${SHELL:-<unset>}"
+          printf 'GITHUB_WORKSPACE=%s\n' "${GITHUB_WORKSPACE:-<unset>}"
+          printf 'github.workspace=%s\n' "${{ github.workspace }}"
+          printf 'PWD=%s\n' "$(pwd)"
+          printf 'VCPKG_ROOT=%s\n' "${VCPKG_ROOT:-<unset>}"
+
+          echo "Directory structure (3 levels):"
           if command -v tree >/dev/null 2>&1; then
             tree -L 3
           else
             echo "(tree not installed; using find)"
+            # List dirs/files up to depth 3
             find . -maxdepth 3 -printf '%y %p\n' | sort
           fi
 
           echo "Contents of root:"
           ls -la
 
-          # Look for vcpkg manifests
-          ls -la vcpkg-configuration.json vcpkg-artifacts.json || true
+          echo "Looking for vcpkg manifest files at repo root:"
+          ls -la vcpkg-configuration.json vcpkg-artifacts.json 2>/dev/null || echo "No vcpkg artifact manifests at root"
 
-          # Optional directories to probe
           for d in tools/ci docker_base docker_licensed ; do
-            [ -d "$d" ] && { echo "== $d =="; ls -la "$d"; }
+            if [ -d "$d" ]; then
+              echo "== $d =="
+              ls -la "$d"
+            fi
           done
 
       - name: vcpkg project probe
