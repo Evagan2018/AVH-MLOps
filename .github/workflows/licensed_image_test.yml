@@ -101,10 +101,69 @@ jobs:
         run: |
           vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" --json="${GITHUB_WORKSPACE}/env.json"
 
-      - name: Export vcpkg environment for subsequent steps
+      - name: Export vcpkg environment for subsequent steps (with debug)
+        shell: sh
         run: |
-           python3 -c 'import json,os; p=os.path.join(os.environ["GITHUB_WORKSPACE"],"env.json"); ge=os.environ["GITHUB_ENV"]; d=json.load(open(p)); env=d.get("environment",{}); cur=os.environ.get("PATH",""); 
-           if "PATH" in env: env["PATH"]=env["PATH"]+((os.pathsep+cur) if cur else ""); open(ge,"a").write("".join(f"{k}={v}\n" for k,v in env.items()))'
+          set -eu
+
+          # 1) Sanity: show we have the JSON
+          echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-<unset>}"
+          echo "GITHUB_ENV=${GITHUB_ENV:-<unset>}"
+          ls -l "$GITHUB_WORKSPACE/env.json" || { echo "env.json missing"; exit 1; }
+
+          # 2) Generate shell exports from env.json to a file
+          python3 - "$GITHUB_WORKSPACE/env.json" > exports.sh <<'PY'
+      import json, os, sys, shlex
+      p = sys.argv[1]
+      data = json.load(open(p))
+      env = data.get("environment", {})
+
+      # Merge PATH so we keep the current PATH at the end (useful for this debug step)
+      cur_path = os.environ.get("PATH","")
+      if "PATH" in env:
+          env["PATH"] = env["PATH"] + (os.pathsep + cur_path if cur_path else "")
+
+      # Print export commands for POSIX sh
+      for k, v in env.items():
+          # Avoid newlines in values
+          v = v.replace("\n", " ")
+          print(f'export {k}={shlex.quote(v)}')
+      PY
+
+          echo "::group::Preview of exports.sh"
+          head -n 50 exports.sh || true
+          echo "::endgroup::"
+
+          # 3) Append KEY=VALUE (without 'export ') to $GITHUB_ENV for LATER steps
+          #    Also print what we append (trimmed for readability)
+          echo "::group::Appending to \$GITHUB_ENV"
+          sed 's/^export //' exports.sh | tee -a "$GITHUB_ENV" | sed -n '1,20p'
+          echo "(…truncated if many vars…)"
+          echo "::endgroup::"
+
+          # 4) For diagnosis ONLY: source the exports in THIS step and check cbuild
+          #    (This does not persist to later steps; those will read $GITHUB_ENV.)
+          . ./exports.sh
+
+          echo "::group::PATH after sourcing (this step only)"
+          echo "$PATH"
+          echo "::endgroup::"
+
+          echo "::group::Locate cbuild (this step only)"
+          if command -v cbuild >/dev/null 2>&1; then
+            echo "cbuild found at: $(command -v cbuild)"
+            ls -l "$(command -v cbuild)" || true
+            dir="$(dirname "$(command -v cbuild)")"
+            echo "Listing directory: $dir"
+            ls -la "$dir" || true
+          else
+            echo "cbuild NOT found even after sourcing exports.sh"
+          fi
+          echo "::endgroup::"
+
+
+          
+
 
       - name: Test cbuild version
         # Test if the armclang command is working in the Docker container
