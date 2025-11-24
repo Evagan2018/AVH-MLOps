@@ -73,7 +73,8 @@ jobs:
       - name: vcpkg project probe
         run: |
           vcpkg --version
-          vcpkg activate --dry-run || true
+          echo $VCPKG_ROOT
+          vcpkg activate
           echo "Contents of root:"
           ls -la
           echo "Try known subdirs:"
