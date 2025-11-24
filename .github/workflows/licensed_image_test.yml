@@ -74,7 +74,7 @@ jobs:
         run: |
           vcpkg --version
           echo $VCPKG_ROOT
-          vcpkg activate --json=${{ GITHUB_WORKSPACE }}/docker_base/vcpkg-configuration.json
+          vcpkg activate --json=${{ github.workspace }}/docker_base/vcpkg-configuration.json
           echo "Contents of root:"
           ls -la
           echo "Try known subdirs:"
