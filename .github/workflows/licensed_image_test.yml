@@ -94,16 +94,12 @@ jobs:
             fi
           done
 
-      - name: Use vcpkg to install tools
-        run: |
-          vcpkg activate --project-root=docker_base --downloads-root=. --json=env.json
       # Diagnostic steps to understand the workspace and vcpkg setup ending here
 
-
-      # Action under test
-      - name: Use vcpkg to install tools (if manifest exists)
+      - name: Use vcpkg to install tools
+        working-directory: docker_base
         run: |
-          vcpkg activate --project-root=docker_base --downloads-root=. --json=env.json
+          vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" --json="${GITHUB_WORKSPACE}/env.json"
 
 
       - name: cbuild testproject
