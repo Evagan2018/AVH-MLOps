@@ -94,26 +94,17 @@ jobs:
             fi
           done
 
-      - name: vcpkg project probe
+      - name: Use vcpkg to install tools
         run: |
-          vcpkg --version
-          vcpkg activate --json=${{ github.workspace }}/docker_base/vcpkg-configuration.json
-          echo "Try known subdirs:"
-          for d in build ci tools docker_base docker_licensed; do
-            [ -d "$d" ] && { echo "== $d =="; ls -la "$d"; }
-          done
+          vcpkg activate --project-root=docker_base --downloads-root=. --json=env.json
       # Diagnostic steps to understand the workspace and vcpkg setup ending here
 
-      - name: Use vcpkg to install tools (if manifest exists)
-        if: ${{ hashFiles('vcpkg-configuration.json', 'vcpkg-artifacts.json') != '' }}
-        run: |
-          vcpkg activate --downloads-root=. --json=env.json
 
       # Action under test
-      - name: Activate vcpkg environment
-        working-directory: ./docker_base
+      - name: Use vcpkg to install tools (if manifest exists)
         run: |
-          vcpkg activate --json=vcpkg-configuration.json
+          vcpkg activate --project-root=docker_base --downloads-root=. --json=env.json
+
 
       - name: cbuild testproject
         # Test if the armclang command is working in the Docker container
