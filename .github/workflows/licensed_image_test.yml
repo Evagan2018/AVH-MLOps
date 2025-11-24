@@ -59,7 +59,9 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
-      # Diagnostic steps to understand the workspace and vcpkg setup starting here
+
+      # === Diagnostic steps to understand the workspace and vcpkg setup starting here ===
+
       - name: Debug workspace (robust)
         run: |
           # Turn off 'exit on error' that GitHub's sh enables, so optional probes won't kill the step
@@ -94,96 +96,41 @@ jobs:
             fi
           done
 
-      # Diagnostic steps to understand the workspace and vcpkg setup ending here
+      # === Diagnostic steps to understand the workspace and vcpkg setup ending here ===
 
-      - name: Use vcpkg to install tools
+      - name: Activate vcpkg tools (writes env.json)
         working-directory: docker_base
         run: |
-          vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" --json="${GITHUB_WORKSPACE}/env.json"
+          vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" \
+                        --json="${GITHUB_WORKSPACE}/env.json"
 
-      - name: Inspect vcpkg env.json and locate cbuild
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
-          ls -l "${GITHUB_WORKSPACE}/env.json"
-
-          echo "---- env.json (first 200 lines) ----"
-          sed -n '1,200p' "${GITHUB_WORKSPACE}/env.json" || true
-          echo "------------------------------------"
-
-          echo "---- environment keys in env.json ----"
-          python3 - <<'PY'
-          import json, os
-          p = os.environ["GITHUB_WORKSPACE"] + "/env.json"
-          env = json.load(open(p)).get("environment", {})
-          print("count:", len(env))
-          for k in sorted(env):
-              print(k)
-          print("\nPATH entry present:", "PATH" in env)
-          if "PATH" in env:
-              print("\nPATH from env.json:\n", env["PATH"])
-          # Show anything CMSIS-related
-          print("\nCMSIS-related vars:")
-          for k,v in env.items():
-              if "CMSIS" in k.upper() or "TOOLBOX" in k.upper():
-                  print(k, "=", v)
-          PY
-          echo "---------------------------------------"
-
-          echo "---- search for cbuild on disk (this may take a bit) ----"
-          # Try in workspace (artifacts usually unpack under the downloads root we set)
-          find "${GITHUB_WORKSPACE}" -type f -name cbuild -perm -111 -printf '%p\n' 2>/dev/null | sed -n '1,20p' || true
-          echo "---------------------------------------------------------"
-          
-      - name: Export vcpkg environment for subsequent steps (robust)
+      - name: Add vcpkg tool paths to $GITHUB_PATH
         shell: bash
         run: |
           set -euo pipefail
           P="${GITHUB_WORKSPACE}/env.json"
-          GE="${GITHUB_ENV}"
-
-          if [[ ! -f "$P" ]]; then
-            echo "env.json not found at $P"; exit 1
-          fi
-
-          # 1) Read env.json
-          python3 - "$P" "$GE" <<'PY'
+          python3 - "$P" "$GITHUB_PATH" <<'PY'
           import json, os, sys
-          p, ge = sys.argv[1], sys.argv[2]
-          data = json.load(open(p))
-          env = data.get("environment", {})
-
-          # Append vcpkg-provided variables to GITHUB_ENV
-          with open(ge, "a") as out:
-              for k,v in env.items():
-                  v = (v or "").replace("\n", " ")
-                  out.write(f"{k}={v}\n")
-          print("Wrote", len(env), "vars from env.json to $GITHUB_ENV")
+          p, ghp = sys.argv[1], sys.argv[2]
+          d = json.load(open(p))
+          paths = []
+          vars = d.get("variables", {})
+          if "PATH" in vars and vars["PATH"]:
+              paths += vars["PATH"].split(os.pathsep)
+          pth = d.get("paths", {})
+          if "PATH" in pth and isinstance(pth["PATH"], list):
+              paths += pth["PATH"]
+          seen=set(); uniq=[]
+          for x in paths:
+              if x and x not in seen:
+                  seen.add(x); uniq.append(x)
+          with open(ghp, "a") as out:
+              for x in uniq:
+                  if os.path.isdir(x):
+                      out.write(x + "\n")
           PY
 
-          # 2) If PATH wasn't provided (or doesn't contain cbuild), try to discover CMSIS toolbox 'bin'
-          #    and append to $GITHUB_ENV.
-          #    We defaulted downloads-root to ${GITHUB_WORKSPACE}/.vcpkg-downloads during activation,
-          #    so artifacts should be under there somewhere.
-          echo "::group::Attempt PATH repair for cbuild"
-          if ! command -v cbuild >/dev/null 2>&1; then
-            CBUILD_BIN="$(find "${GITHUB_WORKSPACE}" -type f -name cbuild -perm -111 2>/dev/null | head -n1 || true)"
-            if [[ -n "${CBUILD_BIN}" ]]; then
-              CBUILD_DIR="$(dirname "$CBUILD_BIN")"
-              echo "Found cbuild at: $CBUILD_BIN"
-              echo "PATH=$CBUILD_DIR:\$PATH" >> "$GE"
-              echo "Appended $CBUILD_DIR to PATH in \$GITHUB_ENV"
-            else
-              echo "Could not locate cbuild on disk; PATH will remain unchanged"
-            fi
-          else
-            echo "cbuild already on PATH in this step (good)."
-          fi
-          echo "::endgroup::"
-          
       - name: Test cbuild version
         # Test if the armclang command is working in the Docker container
         run: |
           cbuild --version
- 
