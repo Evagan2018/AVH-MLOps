@@ -103,21 +103,7 @@ jobs:
 
       - name: Export vcpkg environment for subsequent steps
         run: |
-          python3 - <<'PY'
-          import json, os
-          p = os.environ["GITHUB_WORKSPACE"] + "/env.json"
-          ge = os.environ["GITHUB_ENV"]
-          with open(p) as f: data = json.load(f)
-          env = data.get("environment", {})
-          # Merge PATH with current PATH
-          cur_path = os.environ.get("PATH","")
-          if "PATH" in env:
-              env["PATH"] = env["PATH"] + (os.pathsep + cur_path if cur_path else "")
-          with open(ge, "a") as out:
-              for k,v in env.items():
-                  # GitHub expects KEY=VALUE per line
-                  out.write(f"{k}={v}\n")
-          PY          
+           python3 -c 'import json,os; p=os.path.join(os.environ["GITHUB_WORKSPACE"],"env.json"); ge=os.environ["GITHUB_ENV"]; d=json.load(open(p)); env=d.get("environment",{}); cur=os.environ.get("PATH",""); if "PATH" in env: env["PATH"]=env["PATH"]+((os.pathsep+cur) if cur else ""); open(ge,"a").write("".join(f"{k}={v}\n" for k,v in env.items()))'
 
       - name: Test cbuild version
         # Test if the armclang command is working in the Docker container
