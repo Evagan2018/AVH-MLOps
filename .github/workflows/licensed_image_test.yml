@@ -113,22 +113,22 @@ jobs:
 
           # 2) Generate shell exports from env.json to a file
           python3 - "$GITHUB_WORKSPACE/env.json" > exports.sh <<'PY'
-      import json, os, sys, shlex
-      p = sys.argv[1]
-      data = json.load(open(p))
-      env = data.get("environment", {})
+          import json, os, sys, shlex
+          p = sys.argv[1]
+          data = json.load(open(p))
+          env = data.get("environment", {})
 
-      # Merge PATH so we keep the current PATH at the end (useful for this debug step)
-      cur_path = os.environ.get("PATH","")
-      if "PATH" in env:
-          env["PATH"] = env["PATH"] + (os.pathsep + cur_path if cur_path else "")
+          # Merge PATH so we keep the current PATH at the end (useful for this debug step)
+          cur_path = os.environ.get("PATH","")
+          if "PATH" in env:
+              env["PATH"] = env["PATH"] + (os.pathsep + cur_path if cur_path else "")
 
-      # Print export commands for POSIX sh
-      for k, v in env.items():
+          # Print export commands for POSIX sh
+          for k, v in env.items():
           # Avoid newlines in values
-          v = v.replace("\n", " ")
-          print(f'export {k}={shlex.quote(v)}')
-      PY
+              v = v.replace("\n", " ")
+              print(f'export {k}={shlex.quote(v)}')
+          PY
 
           echo "::group::Preview of exports.sh"
           head -n 50 exports.sh || true
@@ -160,9 +160,6 @@ jobs:
             echo "cbuild NOT found even after sourcing exports.sh"
           fi
           echo "::endgroup::"
-
-
-          
 
 
       - name: Test cbuild version
