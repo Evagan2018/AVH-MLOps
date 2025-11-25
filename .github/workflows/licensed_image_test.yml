@@ -59,8 +59,14 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
-
       # === Diagnostic steps to understand the workspace and vcpkg setup starting here ===
+
+      - name: Diagnosis 1
+        # Show the globals
+        run: |
+          echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
+          echo "GitHub Path      :" ${GITHUB_PATH}
+          echo "Content env.json :" $(cat ${GITHUB_WORKSPACE}/env.json)
 
       - name: Debug workspace (robust)
         run: |
@@ -135,7 +141,7 @@ jobs:
         run: |
           cbuild --version
 
-      - name: Diagnosis
+      - name: Diagnosis 2
         # Show the globals
         run: |
           echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
