@@ -53,4 +53,5 @@ jobs:
 
       - name: Docker run
         run: |
-          docker run --rm -v ${GITHUB_WORKSPACE}:/workspace2 ghcr.io/evagan2018/avh-mlops/arm-mlops-docker-licensed:latest /load_env.sh /vcpkg && cbuild --version
+          docker run --rm -v ${GITHUB_WORKSPACE}:/workspace2 ghcr.io/evagan2018/avh-mlops/arm-mlops-docker-licensed:latest /load_env.sh /vcpkg && vcpkg --version
+          cbuild --version
