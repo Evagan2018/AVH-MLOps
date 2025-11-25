@@ -56,3 +56,6 @@ jobs:
           docker run --rm -v ${GITHUB_WORKSPACE}:/workspace2 ghcr.io/evagan2018/avh-mlops/arm-mlops-docker-licensed:latest
           pwd
           ls -D
+          cd ${GITHUB_WORKSPACE}:/workspace2
+          pwd
+          ls -D          
