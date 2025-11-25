@@ -46,19 +46,11 @@ jobs:
     needs: check-docker-image
     runs-on: ubuntu-latest
 
-    container:
-      # Use the custom Docker image with the necessary tools and dependencies
-      image: ghcr.io/${{ needs.check-docker-image.outputs.repo-slug }}/arm-mlops-docker-licensed:latest
-      credentials:
-        # Set the Docker image credentials using the actor and a GitHub token
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
       - name: Checkout repository
         # Check out the repository containing the ML project
         uses: actions/checkout@v6
 
-      - name: cbuild testproject
-        # Test if the cbuild command is working in the Docker container
-        run: . /load_env.sh /vcpkg && cbuild --version
+      - name: Docker run
+        run: |
+          docker run --rm -v ${GITHUB_WORKSPACE}:/workspace2 ghcr.io/evagan2018/avh-mlops/arm-mlops-docker-licensed:latest /load_env.sh /vcpkg && cbuild --version
