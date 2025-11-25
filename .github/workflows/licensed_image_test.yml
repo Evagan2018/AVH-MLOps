@@ -59,6 +59,7 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
+
       # === Diagnostic steps to understand the workspace and vcpkg setup starting here ===
 
       - name: Diagnosis 1
@@ -104,37 +105,14 @@ jobs:
 
       # === Diagnostic steps to understand the workspace and vcpkg setup ending here ===
 
-      - name: Activate vcpkg tools (writes env.json)
-        working-directory: docker_base
-        run: |
-          vcpkg activate --downloads-root="${GITHUB_WORKSPACE}/.vcpkg-downloads" \
-                        --json="${GITHUB_WORKSPACE}/env.json"
 
-      - name: Add vcpkg tool paths to $GITHUB_PATH
-        shell: bash
-        run: |
-          set -euo pipefail
-          P="${GITHUB_WORKSPACE}/env.json"
-          python3 - "$P" "$GITHUB_PATH" <<'PY'
-          import json, os, sys
-          p, ghp = sys.argv[1], sys.argv[2]
-          d = json.load(open(p))
-          paths = []
-          vars = d.get("variables", {})
-          if "PATH" in vars and vars["PATH"]:
-              paths += vars["PATH"].split(os.pathsep)
-          pth = d.get("paths", {})
-          if "PATH" in pth and isinstance(pth["PATH"], list):
-              paths += pth["PATH"]
-          seen=set(); uniq=[]
-          for x in paths:
-              if x and x not in seen:
-                  seen.add(x); uniq.append(x)
-          with open(ghp, "a") as out:
-              for x in uniq:
-                  if os.path.isdir(x):
-                      out.write(x + "\n")
-          PY
+      - name: Setup vcpkg environment
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with:
+          config: "/vcpkg/vcpkg-configuration.json"
+          vcpkg-downloads: /vcpkg
+          cache: "-"
+
 
       - name: Test cbuild version
         # Test if the cbuild command is working in the Docker container
@@ -146,4 +124,4 @@ jobs:
         run: |
           echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
           echo "GitHub Path      :" ${GITHUB_PATH}
-          echo "Content env.json :" $(cat ${GITHUB_WORKSPACE}/env.json)
+          echo "Content env.json :" $(cat /vcpkg/env.json)
