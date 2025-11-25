@@ -62,5 +62,4 @@ jobs:
       - name: cbuild testproject
         # Test if the cbuild command is working in the Docker container
         run: |
-           . /load_env.sh /vcpkg/
            cbuild --version 
