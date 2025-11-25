@@ -59,53 +59,6 @@ jobs:
         # Check out the repository containing the ML project
         uses: actions/checkout@v5
 
-
-      # === Diagnostic steps to understand the workspace and vcpkg setup starting here ===
-
-      - name: Diagnosis 1
-        # Show the globals
-        run: |
-          echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
-          echo "GitHub Path      :" ${GITHUB_PATH}
-          echo "Content env.json :" $(cat ${GITHUB_WORKSPACE}/env.json)
-
-      - name: Debug workspace (robust)
-        run: |
-          # Turn off 'exit on error' that GitHub's sh enables, so optional probes won't kill the step
-          set +e
-
-          # Safely show common env vars (use defaults to avoid 'unset' crashes)
-          printf 'SHELL=%s\n' "${SHELL:-<unset>}"
-          printf 'GITHUB_WORKSPACE=%s\n' "${GITHUB_WORKSPACE:-<unset>}"
-          printf 'github.workspace=%s\n' "${{ github.workspace }}"
-          printf 'PWD=%s\n' "$(pwd)"
-          printf 'VCPKG_ROOT=%s\n' "${VCPKG_ROOT:-<unset>}"
-
-          echo "Directory structure (3 levels):"
-          if command -v tree >/dev/null 2>&1; then
-            tree -L 3
-          else
-            echo "(tree not installed; using find)"
-            # List dirs/files up to depth 3
-            find . -maxdepth 3 -printf '%y %p\n' | sort
-          fi
-
-          echo "Contents of root:"
-          ls -la
-
-          echo "Looking for vcpkg manifest files at repo root:"
-          ls -la vcpkg-configuration.json vcpkg-artifacts.json 2>/dev/null || echo "No vcpkg artifact manifests at root"
-
-          for d in tools/ci docker_base docker_licensed ; do
-            if [ -d "$d" ]; then
-              echo "== $d =="
-              ls -la "$d"
-            fi
-          done
-
-      # === Diagnostic steps to understand the workspace and vcpkg setup ending here ===
-
-
       - name: Setup vcpkg environment
         uses: ARM-software/cmsis-actions/vcpkg@v1
         with:
@@ -113,15 +66,7 @@ jobs:
           vcpkg-downloads: /vcpkg
           cache: "-"
 
-
       - name: Test cbuild version
         # Test if the cbuild command is working in the Docker container
         run: |
           cbuild --version
-
-      - name: Diagnosis 2
-        # Show the globals
-        run: |
-          echo "GitHub Workspace :" ${GITHUB_WORKSPACE}
-          echo "GitHub Path      :" ${GITHUB_PATH}
-          echo "Content env.json :" $(cat /vcpkg/env.json)
