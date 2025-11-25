@@ -57,16 +57,8 @@ jobs:
     steps:
       - name: Checkout repository
         # Check out the repository containing the ML project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - name: Setup vcpkg environment
-        uses: ARM-software/cmsis-actions/vcpkg@v1
-        with:
-          config: "/vcpkg/vcpkg-configuration.json"
-          vcpkg-downloads: /vcpkg
-          cache: "-"
-
-      - name: Test cbuild version
+      - name: cbuild testproject
         # Test if the cbuild command is working in the Docker container
-        run: |
-          cbuild --version
+        run: /load_env.sh && cbuild --version 
