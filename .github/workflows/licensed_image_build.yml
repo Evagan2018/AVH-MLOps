@@ -18,9 +18,11 @@ on:
 
 jobs:
   build_and_push:
+
     permissions:
       contents: read
       packages: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -29,11 +31,13 @@ jobs:
             runner: ubuntu-latest
           - arch: arm64
             runner: ubuntu-24.04-arm
+
     runs-on: ${{ matrix.runner }}
+
     steps:
       - name: Checkout repository
         # Check out the repository containing the Dockerfile and other necessary files
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Log in to GitHub Container Registry
         # Log in to GitHub Container Registry using the actor and a GitHub token
@@ -51,7 +55,7 @@ jobs:
         # Format the repository slug to lowercase for use in the Docker image tags
         id: repo_slug
         run: echo "REPO_SLUG=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
+ 
       - name: Build and push Base Docker image
         # Build the base Docker image using the Dockerfile in the `docker_base` directory and push it to GitHub Container Registry
         uses: docker/build-push-action@v7
@@ -62,11 +66,11 @@ jobs:
           # Use GitHub Actions cache to speed up the build process
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
-
+   
       - name: Pull Base Docker image
-        # Pull the arch-specific base Docker image from GitHub Container Registry into the local Docker daemon
+        # Pull the arch-specific base Docker image from GitHub Container Registry
         run: docker pull ghcr.io/${{ env.REPO_SLUG }}/arm-mlops-docker-base:latest-${{ matrix.arch }}
-
+        
       - name: Create license file (stub)
         # Create a license file for the Docker image using the ARM UBL license identifier
         run: |
